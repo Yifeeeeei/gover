@@ -21,7 +21,7 @@ gover() {
     if [ -z "$1" ]; then
         echo "Usage: gover <version>"
         echo "Available Go versions:"
-        ls -1 "$GO_DIR" | sed 's/go//'
+        ls -1 "$GO_DIR" 2>/dev/null | sed 's/go//'
         return 1
     fi
 
@@ -29,22 +29,19 @@ gover() {
     local MATCHED_VERSION=""
     local GO_PATH=""
 
-    # Find the latest matching installed version
-    # for dir in "$GO_DIR"/go*; do
-    #     [ -d "$dir" ] || continue  # Skip invalid directories
-    #     local available_version
-    #     available_version=$(basename "$dir" | sed 's/go//')
+    # Enable NULL_GLOB in Zsh to prevent glob expansion errors
+    setopt NULL_GLOB
 
-    #     if [[ "$available_version" == "$VERSION" ]] || [[ "$available_version" == "$VERSION."* ]]; then
-    #         MATCHED_VERSION="$available_version"
-    #     fi
-    # done
-    for dir in "$GO_DIR"/go*; do
+    # Check for installed Go versions
+    local go_dirs=($GO_DIR/go*)  # Expand glob into an array
+    if [ ${#go_dirs[@]} -eq 0 ]; then
+        echo "⚠️ No installed Go versions found."
+    fi
+
+    for dir in "${go_dirs[@]}"; do
         [ -d "$dir" ] || continue
         local available_version
         available_version=$(basename "$dir" | sed 's/go//')
-
-        echo "DEBUG: Checking available_version=$available_version"  # Debug output
 
         if [[ "$available_version" == "$VERSION" ]] || [[ "$available_version" == "$VERSION."* ]]; then
             MATCHED_VERSION="$available_version"
@@ -58,7 +55,7 @@ gover() {
         # If the version is fuzzy (e.g., "1.24"), ask for a full version
         if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "⚠️ No installed version matches '$VERSION'."
-            echo "Please provide a full version (e.g., 1.24.3) for downloading."
+            echo "Please provide a full version (e.g., 1.24.0) for downloading."
             return 1
         fi
     fi
