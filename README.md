@@ -1,4 +1,6 @@
-# gover: go version management shell function
+# gover
+
+gover is a lightweight shell function that simplifies managing and switching between multiple Go versions.
 
 ## Install: pull and add to shell
 
