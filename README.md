@@ -60,6 +60,10 @@ $ gover 1.24
 go version go1.24.3 darwin/arm64
 ```
 
+### Notice
+
+Run gover again when switching to a new terminal.
+
 ## Uninstall
 
 Go to ~/.zshrc and delete the function gover.
