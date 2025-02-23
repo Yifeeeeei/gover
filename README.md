@@ -8,15 +8,9 @@ Zsh
 curl -sSL "https://raw.githubusercontent.com/Yifeeeeei/gover/main/gover" >> ~/.zshrc && source ~/.zshrc
 ```
 
-Bash
+If you want to reinstall, remove the gover function from ~/.zshrc manually first.
 
-```bash
-curl -sSL "https://raw.githubusercontent.com/Yifeeeeei/gover/main/gover" >> ~/.bashrc && source ~/.bashrc
-```
-
-
-
-##  Usage
+## Usage
 
 ###  List Available Versions
 To see the installed Go versions available for switching:
@@ -63,3 +57,7 @@ $ gover 1.24
 ✅ Switched to Go 1.24.3
 go version go1.24.3 darwin/arm64
 ```
+
+## Uninstall
+
+Go to ~/.zshrc and delete the function gover.
