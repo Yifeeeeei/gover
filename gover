@@ -1,0 +1,98 @@
+# gover
+# Function to manage Go versions
+gover() {
+    local GO_DIR="/usr/local/gover"
+    local GO_DOWNLOAD_BASE="https://go.dev/dl"
+
+    # Ensure the directory exists
+    mkdir -p "$GO_DIR"
+
+    # Detect OS and architecture
+    local OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+    local ARCH=$(uname -m)
+
+    case "$ARCH" in
+        x86_64) ARCH="amd64" ;;
+        arm64) ARCH="arm64" ;;
+        *) echo "Unsupported architecture: $ARCH" && return 1 ;;
+    esac
+
+    # If no version is provided, list installed versions
+    if [ -z "$1" ]; then
+        echo "Usage: gover <version>"
+        echo "Available Go versions:"
+        ls -1 "$GO_DIR" | sed 's/go//'
+        return 1
+    fi
+
+    local VERSION="$1"
+    local MATCHED_VERSION=""
+    local GO_PATH=""
+
+    # Find the latest matching installed version
+    # for dir in "$GO_DIR"/go*; do
+    #     [ -d "$dir" ] || continue  # Skip invalid directories
+    #     local available_version
+    #     available_version=$(basename "$dir" | sed 's/go//')
+
+    #     if [[ "$available_version" == "$VERSION" ]] || [[ "$available_version" == "$VERSION."* ]]; then
+    #         MATCHED_VERSION="$available_version"
+    #     fi
+    # done
+    for dir in "$GO_DIR"/go*; do
+        [ -d "$dir" ] || continue
+        local available_version
+        available_version=$(basename "$dir" | sed 's/go//')
+
+        echo "DEBUG: Checking available_version=$available_version"  # Debug output
+
+        if [[ "$available_version" == "$VERSION" ]] || [[ "$available_version" == "$VERSION."* ]]; then
+            MATCHED_VERSION="$available_version"
+        fi
+    done
+
+    # Use the latest matched version if found
+    if [[ -n "$MATCHED_VERSION" ]]; then
+        VERSION="$MATCHED_VERSION"
+    else
+        # If the version is fuzzy (e.g., "1.24"), ask for a full version
+        if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "⚠️ No installed version matches '$VERSION'."
+            echo "Please provide a full version (e.g., 1.24.3) for downloading."
+            return 1
+        fi
+    fi
+
+    GO_PATH="$GO_DIR/go$VERSION"
+
+    # Ensure the requested version is installed, otherwise download it
+    if [ ! -d "$GO_PATH" ]; then
+        echo "⚠️ Go $VERSION is not installed. Downloading..."
+        local go_tarball="go$VERSION.$OS-$ARCH.tar.gz"
+        local url="$GO_DOWNLOAD_BASE/$go_tarball"
+
+        echo "Downloading Go $VERSION for $OS-$ARCH..."
+        wget --quiet --show-progress -O "/tmp/$go_tarball" "$url"
+
+        if [ $? -ne 0 ]; then
+            echo "❌ Failed to download Go $VERSION. Check if the version exists."
+            rm -f "/tmp/$go_tarball"
+            return 1
+        fi
+
+        echo "Extracting Go $VERSION..."
+        sudo rm -rf "$GO_PATH"
+        sudo tar -C "$GO_DIR" -xzf "/tmp/$go_tarball"
+        sudo mv "$GO_DIR/go" "$GO_PATH"
+        rm -f "/tmp/$go_tarball"
+
+        echo "✅ Go $VERSION installed successfully!"
+    fi
+
+    # Update environment variables for the current session
+    export GOROOT="$GO_PATH"
+    export PATH="$GOROOT/bin:$PATH"
+
+    echo "✅ Switched to Go $VERSION"
+    go version
+}
