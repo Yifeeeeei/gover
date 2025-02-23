@@ -5,7 +5,7 @@
 Zsh
 
 ```shell
-curl -sSL "https://gist.githubusercontent.com/Yifeeeeei/raw/gover" >> ~/.zshrc && source ~/.zshrc
+curl -sSL "https://gist.githubusercontent.com/yifeeeeei/gover/main/gover" >> ~/.zshrc && source ~/.zshrc
 ```
 
 Bash

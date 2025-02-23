@@ -4,6 +4,13 @@ gover() {
     local GO_DIR="/usr/local/gover"
     local GO_DOWNLOAD_BASE="https://go.dev/dl"
 
+    # Check if GO_DIR exists, if not prompt the user
+    if [ ! -d "$GO_DIR" ]; then
+        echo "🚨 Directory '$GO_DIR' does not exist. Please run:"
+        echo "    sudo mkdir -p $GO_DIR && sudo chown $(whoami) $GO_DIR"
+        return 1
+    fi
+
     # Ensure the directory exists
     mkdir -p "$GO_DIR"
 
@@ -17,11 +24,14 @@ gover() {
         *) echo "Unsupported architecture: $ARCH" && return 1 ;;
     esac
 
-    # If no version is provided, list installed versions
+    # If no version is provided, list installed versions and show examples
     if [ -z "$1" ]; then
         echo "Usage: gover <version>"
         echo "Available Go versions:"
         ls -1 "$GO_DIR" 2>/dev/null | sed 's/go//'
+        echo "\nExamples:"
+        echo "  gover 1.20.4   # Switch to Go version 1.20.4 or download and switch"
+        echo "  gover 1.19     # Switch to the latest 1.19.x version available"
         return 1
     fi
 
